@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>Hello World |  Anthony</title>
+      <title>使用jeston nano+ros melodic+RPLIDAR构建地图 |  Anthony</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -56,7 +56,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-hello-world"
+  id="post-使用jeston-nano-ros-melodic-RPLIDAR构建地图"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -67,7 +67,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Hello World
+  使用jeston nano+ros melodic+RPLIDAR构建地图
 </h1>
  
 
@@ -75,15 +75,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2022/03/14/hello-world/" class="article-date">
-  <time datetime="2022-03-14T11:33:02.083Z" itemprop="datePublished">2022-03-14</time>
+      <a href="/2022/03/15/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/" class="article-date">
+  <time datetime="2022-03-15T09:57:47.000Z" itemprop="datePublished">2022-03-15</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">75</span>
+            <span class="post-count">696</span>
         </span>
     </span>
 
@@ -92,7 +92,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">1 min</span>
+            <span class="post-count">3 min</span>
         </span>
     </span>
 </div>
@@ -107,19 +107,63 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+  <p>​        RPLIDAR是低成本的二维雷达解决方案，由SLAMTec公司的RoboPeak团队开发，本次学习使用的是PRLIDAR A2型号的激光雷达，其具有16米测量半径，8000次&#x2F;秒的测量频率，非常谁和用于构建地图、做SLAM或构建3D模型。</p>
+<p><img src="/%7F(jeston-nano-ros-melodic-RPLIDAR%EF%BF%BD%EF%BF%BD0%EF%BF%BD%5CY@PSF(D2PW30JZPG~%5D2$%5B%25F.png" alt=" "></p>
+<p><img src="http://images.ncnynl.com/ros/2016/rplidar_A2.png" alt="请输入图片描述"></p>
+<h3 id="1、创建工作空间"><a href="#1、创建工作空间" class="headerlink" title="1、创建工作空间"></a>1、创建工作空间</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p ~/turtlebot_ws/src</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd ~/turtlebot_ws/src</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/ncnynl/rplidar_ros.git</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>这一步克隆如果不成功可以多试几次，或者到github上找到包，自己克隆一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd ..</span><br></pre></td></tr></table></figure>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">catkin_make</span><br></pre></td></tr></table></figure>
+
+<h3 id="2、设置环境变量"><a href="#2、设置环境变量" class="headerlink" title="2、设置环境变量"></a>2、设置环境变量</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">`source /turtlebot_ws/devel/setup.bash`</span><br></pre></td></tr></table></figure>
+
+<p>玩过ros的应该都知道这一步</p>
+<p>下面配置端口</p>
+<ul>
+<li>检查端口权限</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l /dev |grep ttyUSB</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>赋予端口权限666</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod 666 /dev/ttyUSB0</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-运行测试"><a href="#3-运行测试" class="headerlink" title="3.运行测试"></a>3.运行测试</h3><p>运行PRLIDAR和并打开rviz查看：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros view_rplidar.launch</span><br></pre></td></tr></table></figure>
+
+<p>运行PRLIDAR和查看测试应用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros rplidar.launch</span><br></pre></td></tr></table></figure>
+
+<p>新终端打开：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rosrun rplidar_ros rplidarNodeClient</span><br></pre></td></tr></table></figure>
+
+<h4 id="4、构建地图"><a href="#4、构建地图" class="headerlink" title="4、构建地图"></a>4、构建地图</h4><p>①hector_mapping包安装：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install ros-melodic-hector-slam</span><br></pre></td></tr></table></figure>
+
+<p>②创建launch文件：</p>
+<p>在rplidar_ros&#x2F;launch&#x2F;目录下添加hector_mapping_demo.launch文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;launch&gt;</span><br><span class="line">​	&lt;node pkg=&quot;hector_mapping&quot; type=&quot;hector_mapping&quot; name=&quot;hector_mapping&quot; output=&quot;screen&quot;&gt;</span><br><span class="line">​		&lt;param name=&quot;pub_map_odom_transform&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_frame&quot; value=&quot;map&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;base_frame&quot; value=&quot;base_link&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;odom_frame&quot; value=&quot;base_link&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;use_tf_scan_transformation&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;use_tf_pose_start_estimate&quot; value=&quot;false&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_resolution&quot; value=&quot;0.05&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_size&quot; value=&quot;2048&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_start_x&quot; value=&quot;0.5&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_start_y&quot; value=&quot;0.5&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_z_min_value&quot; value = &quot;-1.0&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_z_max_value&quot; value = &quot;1.0&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;map_multi_res_levels&quot; value=&quot;2&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;map_pub_period&quot; value=&quot;2&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_min_dist&quot; value=&quot;0.4&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_max_dist&quot; value=&quot;5.5&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;output_timing&quot; value=&quot;false&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;pub_map_scanmatch_transform&quot; value=&quot;true&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;update_factor_free&quot; value=&quot;0.4&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;update_factor_occupied&quot; value=&quot;0.7&quot; /&gt;    </span><br><span class="line">​		&lt;param name=&quot;map_update_distance_thresh&quot; value=&quot;0.2&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_update_angle_thresh&quot; value=&quot;0.06&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;advertise_map_service&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;scan_subscriber_queue_size&quot; value=&quot;5&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;scan_topic&quot; value=&quot;scan&quot;/&gt;</span><br><span class="line">​	&lt;/node&gt;</span><br><span class="line">​	&lt;node pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; name=&quot;base_to_laser_broadcaster&quot; args=&quot;0 0 0 0 0 0 /base_link /laser 100&quot;/&gt;</span><br><span class="line">​	&lt;node pkg=&quot;rviz&quot; type=&quot;rviz&quot; name=&quot;rviz&quot; args=&quot;-d $(find hector_slam_launch)/rviz_cfg/mapping_demo.rviz&quot;/&gt;</span><br><span class="line">&lt;/launch&gt;`</span><br></pre></td></tr></table></figure>
+
+<p>如果有错误，请先查看格式缩进是否对应，语言的结束符号&#x2F;是否加注合格。</p>
+<p>③运行测试</p>
+<p>运行前查看端口号、给予端口权限:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsusb</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod a+rw /dev/ttyUSB0</span><br></pre></td></tr></table></figure>
+
+<p>运行下面的代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros hector_mapping_demo.launch</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros rplidar.launch</span><br></pre></td></tr></table></figure>
+
+<p><img src="/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/IMG_20220314_170322.jpg"></p>
  
       <!-- reward -->
       
@@ -184,26 +228,24 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/14/hello-world/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/15/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ROS-jeston-nano-RPLIDAR-SLAM/" rel="tag">ROS,jeston nano,RPLIDAR,SLAM</a></li></ul>
+
     </footer>
   </div>
 
    
   <nav class="article-nav">
     
-      <a href="/2022/03/15/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/" class="article-nav-link">
-        <strong class="article-nav-caption">上一篇</strong>
-        <div class="article-nav-title">
-          
-            使用jeston nano+ros melodic+RPLIDAR构建地图
-          
-        </div>
-      </a>
     
+      <a href="/2022/03/14/hello-world/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Hello World</div>
+      </a>
     
   </nav>
 
