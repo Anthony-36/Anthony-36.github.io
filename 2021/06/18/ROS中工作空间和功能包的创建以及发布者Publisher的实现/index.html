@@ -11,7 +11,7 @@
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />
-      <title>使用jeston nano+ros melodic+RPLIDAR构建地图 |  Anthony</title>
+      <title>ROS中工作空间和功能包的创建以及发布者Publisher的实现 |  Anthony</title>
   <meta name="generator" content="hexo-theme-ayer">
       
       <link rel="shortcut icon" href="/favicon.ico" />
@@ -56,7 +56,7 @@
     <main class="content on">
       <section class="outer">
   <article
-  id="post-使用jeston-nano-ros-melodic-RPLIDAR构建地图"
+  id="post-ROS中工作空间和功能包的创建以及发布者Publisher的实现"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -67,7 +67,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  使用jeston nano+ros melodic+RPLIDAR构建地图
+  ROS中工作空间和功能包的创建以及发布者Publisher的实现
 </h1>
  
 
@@ -75,15 +75,15 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2022/03/15/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/" class="article-date">
-  <time datetime="2022-03-15T09:57:47.000Z" itemprop="datePublished">2022-03-15</time>
+      <a href="/2021/06/18/ROS%E4%B8%AD%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4%E5%92%8C%E5%8A%9F%E8%83%BD%E5%8C%85%E7%9A%84%E5%88%9B%E5%BB%BA%E4%BB%A5%E5%8F%8A%E5%8F%91%E5%B8%83%E8%80%85Publisher%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="article-date">
+  <time datetime="2021-06-18T11:15:24.000Z" itemprop="datePublished">2021-06-18</time>
 </a>   
 <div class="word_count">
     <span class="post-time">
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">696</span>
+            <span class="post-count">1.6k</span>
         </span>
     </span>
 
@@ -92,7 +92,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">6 min</span>
         </span>
     </span>
 </div>
@@ -107,63 +107,111 @@
   
     <div class="article-entry" itemprop="articleBody">
        
-  <p>​        RPLIDAR是低成本的二维雷达解决方案，由SLAMTec公司的RoboPeak团队开发，本次学习使用的是PRLIDAR A2型号的激光雷达，其具有16米测量半径，8000次&#x2F;秒的测量频率，非常谁和用于构建地图、做SLAM或构建3D模型。</p>
-<p><img src="/%7F(jeston-nano-ros-melodic-RPLIDAR%EF%BF%BD%EF%BF%BD0%EF%BF%BD%5CY@PSF(D2PW30JZPG~%5D2$%5B%25F.png" alt=" "></p>
-<p><img src="http://images.ncnynl.com/ros/2016/rplidar_A2.png" alt="请输入图片描述"></p>
-<h3 id="1、创建工作空间"><a href="#1、创建工作空间" class="headerlink" title="1、创建工作空间"></a>1、创建工作空间</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p ~/turtlebot_ws/src</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd ~/turtlebot_ws/src</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/ncnynl/rplidar_ros.git</span><br></pre></td></tr></table></figure>
-
-<p>这一步克隆如果不成功可以多试几次，或者到github上找到包，自己克隆一下</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd ..</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">catkin_make</span><br></pre></td></tr></table></figure>
-
-<h3 id="2、设置环境变量"><a href="#2、设置环境变量" class="headerlink" title="2、设置环境变量"></a>2、设置环境变量</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">`source /turtlebot_ws/devel/setup.bash`</span><br></pre></td></tr></table></figure>
-
-<p>玩过ros的应该都知道这一步</p>
-<p>下面配置端口</p>
+  <p>最近刚刚开始学习ROS，对于整个ROS的框架和功能正在一点点的了解，跟着B站古月居的《ROS入门21讲》课程，在安装好linux和ROS后，正式开始ROS的学习，动手实践敲代码，在这里先记录一下开始ROS项目的第一步，同时我安装的ROS版本为Noetic。<br>此次功能的实现是在ROS经典教程小乌龟运动上进行的。</p>
+<h2 id="创建工作空间和功能包"><a href="#创建工作空间和功能包" class="headerlink" title="创建工作空间和功能包"></a>创建工作空间和功能包</h2><p>工作空间（worksspace）是一个存放工程开发相关文件的文件夹，咱们创建主文件夹catkin_ws，其中创建以下四个子文件夹：</p>
+<blockquote>
 <ul>
-<li>检查端口权限</li>
+<li>src：代码空间（Source Space）</li>
+<li>build：编译空间（Build Space）</li>
+<li>devel：开发空间（Develpment Space）</li>
+<li>install：安装空间（Install Space）</li>
 </ul>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l /dev |grep ttyUSB</span><br></pre></td></tr></table></figure>
-
+</blockquote>
+<p>下面为实际操作：</p>
+<h3 id="1-创建工作空间"><a href="#1-创建工作空间" class="headerlink" title="1.创建工作空间"></a>1.创建工作空间</h3><p>先在主目录里面创建catkin_ws文件夹,在主目录中打开终端。</p>
+<pre><code>$  mkdir catkin_ws
+</code></pre>
+<p>也可以是别的目录，后面要设置一个环境变量，会用到已创建的工作空间里面的一个文件，如果不用主目录，在写文件路径的时候会比较麻烦。同时这个文件夹的文件不一定必须要命名为catkin_ws。但是上面所说的工作空间里面的四个文件夹，文件命名不能修改！</p>
+<p>进入catkin_ws文件，创建src文件夹，这个文件夹是咱们一开始创建的，跟普通文件夹性质一样。</p>
+<pre><code>$  cd catkin_ws
+$  mkdir src
+</code></pre>
+<p>进入src文件夹。</p>
+<pre><code>$  cd src
+</code></pre>
+<p>把当前的文件夹初始化，把他从一个普通的文件夹变成ROS的一个工作空间。</p>
+<pre><code> $  catkin_init_workspace
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/d8060ec2893f4ae1b946c268472bc4c0.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>退回到catkin_ws文件夹。</p>
+<pre><code>$  cd ..
+</code></pre>
+<p>下面是编译命令；这个是catkin工具提供的编译器的指令，编译src功能包里面的源码，然后结果放到devel和build文件夹里面。</p>
+<pre><code>$  catkin_make
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/b312de2f05eb4ba0b49720ebce98f674.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>创建install文件夹，这个文件不会在工作空间初始化后自己生成，需要自己编译创建。</p>
+<pre><code>$  catkin_make install
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/01c6334781534d8aba6f954c8dcfb5fa.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>目前在catkin_ws里面有四个文件夹，各自的功能如下：</p>
+<blockquote>
 <ul>
-<li>赋予端口权限666</li>
+<li>src：:放置功能包的源码，后面Publisher发布的话题内容文件夹就放置在这个文件夹里面。</li>
+<li>install：放置最终编译生成的可执行文件，这个文件可没有。</li>
+<li>devel：开发空间，用于存放编译生成的目标文件，包括头文件、动态&amp;静态链接库、可执行文件，作用和install类似。</li>
+<li>build：编译空间，放置编译的中间文件，二进制文件，存放CMake和catkin的缓存信息、配置信息和其他中间文件。</li>
 </ul>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod 666 /dev/ttyUSB0</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h3 id="2-创建功能包"><a href="#2-创建功能包" class="headerlink" title="2.创建功能包"></a>2.创建功能包</h3><p>进入src文件夹。</p>
+<pre><code>$  cd ~/catkin_ws/src
+</code></pre>
+<p>创建功能包，名字为learning_topic，后面五个是依赖的五个工具包，可以用C++或者Python语言来写话题内容。</p>
+<pre><code>$  catkin_create_pkg learning_topic roscpp rospy std_msgs geometry_msgs turtlesim
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/b2c61fda16954524be9ac5587e5a2a2e.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<h3 id="3-创建发布者代码"><a href="#3-创建发布者代码" class="headerlink" title="3.创建发布者代码"></a>3.创建发布者代码</h3><p>然后在catkin_ws&#x2F;src&#x2F;learning_topic&#x2F;src里面创建velocity_publisher.cpp文件，可以使用下面的命令：</p>
+<pre><code>$  touch velocity_publisher.cpp
+</code></pre>
+<p>然后使用vim命令，打开这个文件夹。</p>
+<pre><code>$  vim  velocity_publisher.cpp
+</code></pre>
+<p>把下面的代码复制粘贴上去，如果复制粘贴不上去，请看一下回头看一下linux命令，文件管理和编辑。或者直接右键：用文本编辑器打开。<br>下面的代码这次就不详细讲解了，只说一下大致的功能。大部分都有注释，代码在《古月ROS21讲》视频配套的文件里有，去古月居公众号找一下。另外这是C++语言的，因为在创建功能包的时候，咱们不光加入了C++的依赖也加入了Python的依赖，所以也可以使用Python编写，Python编写的整体风格要比C++简约的多。<br>在下面的代码中，实现了几个效果:</p>
+<blockquote>
+<ul>
+<li>初始化ROS节点；</li>
+<li>向ROS Master 注册节点信息，包括发布的话题名和话题中的消息类型；</li>
+<li>创建消息数据；</li>
+<li>按照一定频率循环发布消息。</li>
+</ul>
+</blockquote>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 该例程将发布turtle1/cmd_vel话题，消息类型geometry_msgs::Twist</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;ros/ros.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;geometry_msgs/Twist.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">// ROS节点初始化</span></span><br><span class="line">	ros::<span class="built_in">init</span>(argc, argv, <span class="string">&quot;velocity_publisher&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建节点句柄</span></span><br><span class="line">	ros::NodeHandle n;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建一个Publisher，发布名为/turtle1/cmd_vel的topic，消息类型为geometry_msgs::Twist，队列长度10</span></span><br><span class="line">	ros::Publisher turtle_vel_pub = n.<span class="built_in">advertise</span>&lt;geometry_msgs::Twist&gt;(<span class="string">&quot;/turtle1/cmd_vel&quot;</span>, <span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 设置循环的频率</span></span><br><span class="line">	<span class="function">ros::Rate <span class="title">loop_rate</span><span class="params">(<span class="number">10</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (ros::<span class="built_in">ok</span>())</span><br><span class="line">	&#123;</span><br><span class="line">	    <span class="comment">// 初始化geometry_msgs::Twist类型的消息</span></span><br><span class="line">		geometry_msgs::Twist vel_msg;</span><br><span class="line">		vel_msg.linear.x = <span class="number">0.5</span>;</span><br><span class="line">		vel_msg.angular.z = <span class="number">0.2</span>;</span><br><span class="line"></span><br><span class="line">	    <span class="comment">// 发布消息</span></span><br><span class="line">		turtle_vel_pub.<span class="built_in">publish</span>(vel_msg);</span><br><span class="line">		<span class="built_in">ROS_INFO</span>(<span class="string">&quot;Publsh turtle velocity command[%0.2f m/s, %0.2f rad/s]&quot;</span>, </span><br><span class="line">				vel_msg.linear.x, vel_msg.angular.z);</span><br><span class="line"></span><br><span class="line">	    <span class="comment">// 按照循环频率延时</span></span><br><span class="line">	    loop_rate.<span class="built_in">sleep</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-配置发布者代码编译规则"><a href="#4-配置发布者代码编译规则" class="headerlink" title="4.配置发布者代码编译规则"></a>4.配置发布者代码编译规则</h3><p>在catkin_ws&#x2F;src&#x2F;learning_topic&#x2F;CMakeLists.txt中加入以下代码，位置是在CMakeLists.txt中的install标题上面。</p>
+<pre><code>    add_executable(velocity_publisher src/velocity_publisher.cpp)
+    target_link_libraries(velocity_publisher $&#123;catkin_LIBRARIES&#125;)
+</code></pre>
+<p>add_executable这个函数是把velocity_publisher.cpp文件编译成可执行文件velocity_publisher。<br>target_link_libraries函数把上面生成的可执行文件velocity_publisher和ROS相关的库作链接，像是C++、Python库</p>
+<h3 id="5-编译并运行发布者"><a href="#5-编译并运行发布者" class="headerlink" title="5.编译并运行发布者"></a>5.编译并运行发布者</h3><p>咱们再回到catkin_ws文件夹:</p>
+<pre><code>$  cd ~/catkin_ws
+</code></pre>
+<p>进行编译:</p>
+<pre><code>$  catkin_make
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/336ca6d81c254331b2850174f72f4d9d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>随后需要设置环境变量：</p>
+<pre><code>$  source devel/setup.bash
+</code></pre>
+<p>如果不想每次执行这个文件，配置环境变量 ，在主目录下按快捷键Ctrl+H，显示出隐藏的文件，在.bashrc文件里面的最后加上</p>
+<pre><code>echo &quot;source /home/yzxie/catkin_ws/devel/setup.bash&quot;&gt;&gt; ~/.bashrc
 
-<h3 id="3-运行测试"><a href="#3-运行测试" class="headerlink" title="3.运行测试"></a>3.运行测试</h3><p>运行PRLIDAR和并打开rviz查看：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros view_rplidar.launch</span><br></pre></td></tr></table></figure>
+或者
 
-<p>运行PRLIDAR和查看测试应用</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros rplidar.launch</span><br></pre></td></tr></table></figure>
-
-<p>新终端打开：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rosrun rplidar_ros rplidarNodeClient</span><br></pre></td></tr></table></figure>
-
-<h4 id="4、构建地图"><a href="#4、构建地图" class="headerlink" title="4、构建地图"></a>4、构建地图</h4><p>①hector_mapping包安装：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install ros-melodic-hector-slam</span><br></pre></td></tr></table></figure>
-
-<p>②创建launch文件：</p>
-<p>在rplidar_ros&#x2F;launch&#x2F;目录下添加hector_mapping_demo.launch文件</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;launch&gt;</span><br><span class="line">​	&lt;node pkg=&quot;hector_mapping&quot; type=&quot;hector_mapping&quot; name=&quot;hector_mapping&quot; output=&quot;screen&quot;&gt;</span><br><span class="line">​		&lt;param name=&quot;pub_map_odom_transform&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_frame&quot; value=&quot;map&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;base_frame&quot; value=&quot;base_link&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;odom_frame&quot; value=&quot;base_link&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;use_tf_scan_transformation&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;use_tf_pose_start_estimate&quot; value=&quot;false&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_resolution&quot; value=&quot;0.05&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_size&quot; value=&quot;2048&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_start_x&quot; value=&quot;0.5&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_start_y&quot; value=&quot;0.5&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_z_min_value&quot; value = &quot;-1.0&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_z_max_value&quot; value = &quot;1.0&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;map_multi_res_levels&quot; value=&quot;2&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;map_pub_period&quot; value=&quot;2&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_min_dist&quot; value=&quot;0.4&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;laser_max_dist&quot; value=&quot;5.5&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;output_timing&quot; value=&quot;false&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;pub_map_scanmatch_transform&quot; value=&quot;true&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;update_factor_free&quot; value=&quot;0.4&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;update_factor_occupied&quot; value=&quot;0.7&quot; /&gt;    </span><br><span class="line">​		&lt;param name=&quot;map_update_distance_thresh&quot; value=&quot;0.2&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;map_update_angle_thresh&quot; value=&quot;0.06&quot; /&gt;</span><br><span class="line">​		&lt;param name=&quot;advertise_map_service&quot; value=&quot;true&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;scan_subscriber_queue_size&quot; value=&quot;5&quot;/&gt;</span><br><span class="line">​		&lt;param name=&quot;scan_topic&quot; value=&quot;scan&quot;/&gt;</span><br><span class="line">​	&lt;/node&gt;</span><br><span class="line">​	&lt;node pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; name=&quot;base_to_laser_broadcaster&quot; args=&quot;0 0 0 0 0 0 /base_link /laser 100&quot;/&gt;</span><br><span class="line">​	&lt;node pkg=&quot;rviz&quot; type=&quot;rviz&quot; name=&quot;rviz&quot; args=&quot;-d $(find hector_slam_launch)/rviz_cfg/mapping_demo.rviz&quot;/&gt;</span><br><span class="line">&lt;/launch&gt;`</span><br></pre></td></tr></table></figure>
-
-<p>如果有错误，请先查看格式缩进是否对应，语言的结束符号&#x2F;是否加注合格。</p>
-<p>③运行测试</p>
-<p>运行前查看端口号、给予端口权限:</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsusb</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo chmod a+rw /dev/ttyUSB0</span><br></pre></td></tr></table></figure>
-
-<p>运行下面的代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros hector_mapping_demo.launch</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">roslaunch rplidar_ros rplidar.launch</span><br></pre></td></tr></table></figure>
-
-<p><img src="/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/IMG_20220314_170322.jpg"></p>
+source /home/yzxie/catkin_ws/devel/setup.bash
+</code></pre>
+<p>这里注意第二行代码中，&#x2F;home意思是在主目录里面，如果你一开始catkin_ws文件不是创建在主目录下，这里就要盖面路径，&#x2F;yzxie&#x2F;是你linux系统的用户名。</p>
+<p>随后重新打开终端，输入一下命令;</p>
+<pre><code>$  roscore
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/aebb03d8702e47bda3718bdb0b8e0928.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>不要关闭，Ctri+Atl+T再重新打开一个终端，输入以下命令：</p>
+<pre><code>$  rosrun turtlesim turtlesim_node
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/2d63fd92f26141a2a58c282b83d97bf7.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"></p>
+<p>运行之后就会看到小乌龟的界面,小海龟的皮肤每次都是随机，每次都像开盲盒。然后Ctri+Atl+T再重新打开一个终端，输入以下命令：</p>
+<pre><code>$  rosrun learning_topic velocity_publisher
+</code></pre>
+<p><img src="https://img-blog.csdnimg.cn/d298939811e044929fb87b6fd3d0269f.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBATW8teGll,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"><br>然后小乌龟就按照咱们C++程序中设定的，以一定的角速度旋转，咱们的整个功能也就实现了。</p>
+<p>​        </p>
  
       <!-- reward -->
       
@@ -228,12 +276,12 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2022/03/15/%E4%BD%BF%E7%94%A8jeston-nano-ros-melodic-RPLIDAR%E6%9E%84%E5%BB%BA%E5%9C%B0%E5%9B%BE/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/06/18/ROS%E4%B8%AD%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4%E5%92%8C%E5%8A%9F%E8%83%BD%E5%8C%85%E7%9A%84%E5%88%9B%E5%BB%BA%E4%BB%A5%E5%8F%8A%E5%8F%91%E5%B8%83%E8%80%85Publisher%E7%9A%84%E5%AE%9E%E7%8E%B0/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>  
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ROS-jeston-nano-RPLIDAR-SLAM/" rel="tag">ROS,jeston nano,RPLIDAR,SLAM</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ROS%E3%80%81C/" rel="tag">ROS、C++</a></li></ul>
 
     </footer>
   </div>
@@ -241,19 +289,19 @@
    
   <nav class="article-nav">
     
-      <a href="/2022/03/20/MoveIt%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E4%BA%8C%EF%BC%89%E6%9C%BA%E6%A2%B0%E8%87%82URDF%E5%9C%A8ROS%E4%B8%ADMoveIt%E7%9A%84%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2021/07/10/Jetson%20nano%20ubuntu18.04%E9%85%8D%E7%BD%AE%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            MoveIt的使用（二）机械臂URDF在ROS中MoveIt的配置和使用
+            Jetson nano ubuntu18.04配置中文输入法
           
         </div>
       </a>
     
     
-      <a href="/2021/07/10/Jetson%20nano%20ubuntu18.04%E9%85%8D%E7%BD%AE%E4%B8%AD%E6%96%87%E8%BE%93%E5%85%A5%E6%B3%95/" class="article-nav-link">
+      <a href="/2021/06/17/%E5%9C%A8ROS%E4%B8%AD%E4%BD%BF%E7%94%A8C++%E4%B8%AD%EF%BC%8Cros_ros.h%E6%8A%A5%E9%94%99_%E6%89%BE%E4%B8%8D%E5%88%B0/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Jetson nano ubuntu18.04配置中文输入法</div>
+        <div class="article-nav-title">在ROS中使用C++中，ros_ros.h报错_找不到</div>
       </a>
     
   </nav>

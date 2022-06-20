@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-Hans">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>STM32寄存器点亮LED（什么是寄存器、GPIO工作方式、点亮原理） |  Anthony</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    <link rel="alternate" href="/atom.xml" title="Anthony" type="application/atom+xml">
+</head>
+  </html>
+</html>
+
+
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-STM32寄存器点亮LED（什么是寄存器、GPIO工作方式、点亮原理）"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  STM32寄存器点亮LED（什么是寄存器、GPIO工作方式、点亮原理）
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/05/05/STM32%E5%AF%84%E5%AD%98%E5%99%A8%E7%82%B9%E4%BA%AELED%EF%BC%88%E4%BB%80%E4%B9%88%E6%98%AF%E5%AF%84%E5%AD%98%E5%99%A8%E3%80%81GPIO%E5%B7%A5%E4%BD%9C%E6%96%B9%E5%BC%8F%E3%80%81%E7%82%B9%E4%BA%AE%E5%8E%9F%E7%90%86%EF%BC%89/" class="article-date">
+  <time datetime="2021-05-05T10:55:17.000Z" itemprop="datePublished">2021-05-05</time>
+</a>   
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">4.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">15 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="一、什么是寄存器"><a href="#一、什么是寄存器" class="headerlink" title="一、什么是寄存器"></a>一、什么是寄存器</h1><p>&amp;emsp; STM32编程通常有两种编程方法，一种是寄存器编程；另一种是固件库编程，其中寄存器编程是基础，而固件库编程是在寄存器编程的基础上升级而来的一种易于学习和开发的方法，是学习STM32编程时需重点掌握的一种编程方法。而固件库编程对于项目开发固然简单和快速，但是从学习的角度出发，寄存器编程的方法也不能不掌握。其实我们在学习8位单片机的时候，像是MSC-51单片机，就是采用寄存器编程。</p>
+<h1 id="二、GPIO框图剖析"><a href="#二、GPIO框图剖析" class="headerlink" title="二、GPIO框图剖析"></a>二、GPIO框图剖析</h1><p>&amp;emsp; GPIO是通用输入输出口端口的简称，简单就是来说就是STM32可控制引脚。将STM32芯片引脚与外部设备连接起来，即可实现与外部通信、控制以及数据采集的功能。</p>
+<p>&amp;emsp; 通过GPIO硬件结构框图，就可以从整体上深入了解GPIO外设及它的各种应用模式。从最右端看起，最右端就是代表STM32芯片引出的GPIO引脚，其余部件都位于芯片内部。<br><img src="https://img-blog.csdnimg.cn/ad624ed6e64f4aada7acad74f610ac4a.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"></p>
+<h2 id="2-1-基本结构分析"><a href="#2-1-基本结构分析" class="headerlink" title="2.1 基本结构分析"></a>2.1 基本结构分析</h2><p>&amp;emsp; 下面我们按上图中的编号对GPIO端口的结构部件进行说明。</p>
+<p>①保护二极管及上、下拉电阻<br>&amp;emsp; 引脚的两个保护二极管可以防止引脚外部过高或过低的电压输入，当引脚电压高于VDD时，上方的二极管导通，当引脚电压低于VSS时，下方的二极管导通，防止不正常电压引入芯片导致芯片烧毁。尽管有这样的保护，并不意味着STM32的引脚能直接外接大功率驱动器件，如直接驱动电机，要么电机不转，要么导致芯片烧坏，必须要加大功率及隔离电路驱动。</p>
+<p>②P-MOS管和N-MOS管<br>&amp;emsp; GPIO引脚线路经过两个保护二极管后，向上流向“输入模式”结构，向下流向“输出模式”结构。先看输出模式部分，线路经过一个由P-MOS和N-MOS管组成的单元电路。这个结构使GPIO具有了“推挽输出”和“开漏输出”两种模式。</p>
+<p>&amp;emsp; 所谓推挽输出模式，是根据这两个MOS管的工作方式来命名的。在该结构中输入高电平时，经过反向后，上方的P-MOS导通，下方的N-MOS关闭，对外输出高电平；而在该结构中输入低电平时，经过反向后，N-MOS管导通，P-MOS关闭，对外输出低电平。当引脚高低电平切换时，两个MOS管轮流导通，P管负责灌电流，N管负责拉电流，使其负载能力和开关速度都比普通的方式有很大的提高。推挽输出的低电平为0V，高电平为3.3V，推挽输出模式时的等效电路见图。<br><img src="https://img-blog.csdnimg.cn/26ddafff449c439ba607ca1edb5ed3f1.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"><br>&amp;emsp; 而在开漏输出模式时，上方的P-MOS管完全不工作。如果我们控制输出为0，低电平，则P-MOS管关闭，N-MOS管导通，使输出接地，若控制输出为1（它无法直接输出高电平）时，则P-MOS管和N-MOS管都关闭，所以引脚既不输出高电平，也不输出低电平，为高阻态。正常使用时必须外部接上拉电阻，等效电路见图7-3。它具有“线与”特性，也就是说，若有很多个开漏模式引脚连接到一起时，只有当所有引脚都输出高阻态，才由上拉电阻提供高电平，此高电平的电压为外部上拉电阻所接的电源的电压。若其中一个引脚为低电平，那线路就相当于短路接地，使得整条线路都为低电平，0V。<img src="https://img-blog.csdnimg.cn/0e0111537816468cb66d720435751839.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"><br>&amp;emsp; &amp;emsp; 推挽输出模式一般应用在输出电平为0和3.3V而且需要高速切换开关状态的场合。在STM32的应用中，除了必须用开漏模式的场合，一般习惯使用推挽输出模式。</p>
+<p>&amp;emsp; 开漏输出一般应用在I2C、SMBUS通信等需要“线与”功能的总线电路中。除此之外，还用在电平不匹配的场合，如需要输出5V的高电平，就可以在外部接一个上拉电阻，上拉电源为5V，并且把GPIO设置为开漏模式，当输出高阻态时，由上拉电阻和电源向外输出5V的电平，具体见图。<br><img src="https://img-blog.csdnimg.cn/2ce07e94cedb43309265b95a6bb027be.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"><br>③输出数据寄存器<br>&amp;emsp; 前面提到的双MOS管结构电路的输入信号，是由GPIO“输出数据寄存器GPIOx_ODR”提供的，因此我们通过修改输出数据寄存器的值，就可以修改GPIO引脚的输出电平。而“置位&#x2F;复位寄存器GPIOx_BSRR”可以通过修改输出数据寄存器的值，从而影响电路的输出。<br>④复用功能输出<br>&amp;emsp; “复用功能输出”中的“复用”是指STM32的其他片上外设对GPIO引脚进行控制，此时GPIO引脚用作该外设功能的一部分，算是第二用途。从其他外设引出来的“复用功能输出信号”与GPIO本身的数据寄存器都连接到双MOS管结构的输入中，将图7-1中的梯形结构作为开关切换选择。<br>&amp;emsp; 例如我们使用USART串口通信时，需要用到某个GPIO引脚作为通信发送引脚，这个时候就可以把该GPIO引脚配置成USART串口复用功能，由串口外设控制该引脚，发送数据。<br>⑤输入数据寄存器<br>&amp;emsp; 看GPIO结构框图的上半部分，GPIO引脚经过内部的上、下拉电阻，可以配置成上&#x2F;下拉输入，然后再连接到肖特基触发器，信号经过触发器后，模拟信号转化为0、1的数字信号，然后存储在“输入数据寄存器GPIOx_IDR”中，通过读取该寄存器就可以了解GPIO引脚的电平状态。<br>⑥复用功能输入<br>&amp;emsp;与“复用功能输出”模式类似，在“复用功能输入模式”时，GPIO引脚的信号传输到STM32其他片上外设，由该外设读取引脚状态。<br>同样，如我们使用USART串口通信时，需要用到某个GPIO引脚作为通信接收引脚，这个时候就可以把该GPIO引脚配置成USART串口复用功能，使USART可以通过该通信引脚的接收远端数据。<br>⑦模拟输入输出<br>&amp;emsp;当GPIO引脚用于ADC采集电压的输入通道时，用作“模拟输入”功能，此时信号是不经过肖特基触发器的，因为经过肖特基触发器后信号只有0、1两种状态，所以ADC外设要采集到原始的模拟信号，信号源输入必须在肖特基触发器之前。类似地，当GPIO引脚用于DAC作为模拟电压输出通道时，此时作为“模拟输出”功能，DAC的模拟信号输出就不经过双MOS管结构，而是直接输出到引脚。</p>
+<h2 id="2-2GPIO工作模式"><a href="#2-2GPIO工作模式" class="headerlink" title="2.2GPIO工作模式"></a>2.2GPIO工作模式</h2><p>&amp;emsp;在固件库中，GPIO总共有8种细分的工作模式，稍加整理可以大致归类为以下3类。<br>①输入模式（模拟&#x2F;浮空&#x2F;上拉&#x2F;下拉）<br>&amp;emsp;在输入模式时，肖特基触发器打开，输出被禁止，可通过输入数据寄存器GPIOx_IDR读取I&#x2F;O状态。其中输入模式可设置为上拉、下拉、浮空和模拟4种。上拉和下拉输入很好理解，默认的电平由上拉或者下拉决定。浮空输入的电平是不确定的，完全由外部的输入决定，一般接按键的时候用的是这个模式。模拟输入则用于ADC采集。<br>②输出模式（推挽&#x2F;开漏）<br>&amp;emsp;在输出模式中，推挽模式时双MOS管轮流工作，输出数据寄存器GPIOx_ODR可控制I&#x2F;O输出高低电平。开漏模式时，只有N-MOS管工作，输出数据寄存器可控制I&#x2F;O输出高阻态或低电平。输出速度可配置，有2MHz、10MHz、50MHz几种选项。此处的输出速度即I&#x2F;O支持的高低电平状态最高切换频率，支持的频率越高，功耗越大，如果功耗要求不严格，把速度设置成最大即可。<br>&amp;emsp;在输出模式时肖特基触发器是打开的，即输入可用，通过输入数据寄存器GPIOx_IDR可读取I&#x2F;O的实际状态。<br>③复用功能（推挽&#x2F;开漏）<br>&amp;emsp;复用功能模式中，输出使能，输出速度可配置，可工作在开漏及推挽模式，但是输出信号源于其他外设，输出数据寄存器GPIOx_ODR无效；输入可用，通过输入数据寄存器可获取I&#x2F;O实际状态，但一般直接用外设的寄存器来获取该数据信号。<br>&amp;emsp;通过对GPIO寄存器写入不同的参数，就可以改变GPIO的工作模式。再强调一下，要了解具体寄存器，一定要查阅《STM32F10X-中文参考手册》中对应外设的寄存器说明。在GPIO外设中，控制端口高低控制寄存器CRH和CRL可以配置每个GPIO的工作模式和工作的速度，每4位控制一个IO，CRL控制端口的低8位（见图7-5），CRH控制端口的高8位（见图7-6），具体要看CRL和CRH的寄存器描述。<br><img src="https://img-blog.csdnimg.cn/62cbe1ad306f4b4bb5e0e608a062a0af.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"><br><img src="https://img-blog.csdnimg.cn/d10f1281733942bc9696708cce8a87ff.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"></p>
+<h1 id="三、点亮ELD"><a href="#三、点亮ELD" class="headerlink" title="三、点亮ELD"></a>三、点亮ELD</h1><h2 id="3-1-LED原理"><a href="#3-1-LED原理" class="headerlink" title="3.1 LED原理"></a>3.1 LED原理</h2><p>&amp;emsp;下图是STM32芯片和LED的连接图，这是个RGB灯，有红绿蓝3个小灯组成，使用PWM控制时可以混成256种不同的颜色。<br><img src="https://img-blog.csdnimg.cn/f07c0856e1b2483d9779512a5135ebdd.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述"><br>&amp;emsp;图中从3个LED的阳极引出连接到3.3V电源，阴极各经过1个限流电阻引入至STM32的3个GPIO引脚，所以我们只要控制这3个引脚输出高低电平，即可控制其所连接的LED的亮灭。&amp;emsp;如果您的实验板STM32连接到LED的引脚或极性不一样，只需要修改程序到对应的GPIO引脚即可，工作原理都是一样的。</p>
+<p>我们的目标是把GPIO的引脚设置成推挽输出模式，并且默认下拉，输出低电平，这样就能让LED亮起来了。</p>
+<h2 id="3-2文件准备"><a href="#3-2文件准备" class="headerlink" title="3.2文件准备"></a>3.2文件准备</h2><p>&amp;emsp;在创建工程后，主要有三个文件夹：startup_stm32f10x_hd.s、stm32f10x.h以及main.c。</p>
+<h3 id="3-2-1-startup-stm32f10x-hd-s"><a href="#3-2-1-startup-stm32f10x-hd-s" class="headerlink" title="3.2.1 startup_stm32f10x_hd.s"></a>3.2.1 startup_stm32f10x_hd.s</h3><p>&amp;emsp;名为startup_stm32f10x_hd.s的文件中用汇编语言写好了基本程序，当STM32芯片上电启动的时候，首先会执行这里的汇编程序，从而建立起C语言的运行环境，所以我们把这个文件称为启动文件。该文件使用的汇编指令是Cortex-M3内核支持的指令，可参考《Cortex-M3权威指南》中指令集内容。<br>&amp;emsp;startup_stm32f10x_hd.s文件由官方提供，一般需要修改也是在官方的基础上修改，不会自己完全重写。该文件可以从ST固件库里面找到，找到该文件后把启动文件添加到工程中即可。不同型号的芯片以及不同编译环境下使用的汇编文件是不一样的，但功能相同。<br>&amp;emsp;对于启动文件这部分我们主要总结它的功能，不详细讲解里面的代码。其功能如下：</p>
+<ul>
+<li>初始化堆栈指针SP。</li>
+<li>初始化程序计数器指针PC。</li>
+<li>设置堆、栈的大小。</li>
+<li>初始化中断向量表。</li>
+<li>配置外部SRAM作为数据存储器（这个由用户配置，一般的开发板没有外部SRAM）。</li>
+<li>调用System Ini() 函数配置STM32的系统时钟。</li>
+<li>设置C库的分支入口“__main”（最终用来调用main函数）。</li>
+</ul>
+<h3 id="3-2-2-stm32f10x-h"><a href="#3-2-2-stm32f10x-h" class="headerlink" title="3.2.2 stm32f10x.h"></a>3.2.2 stm32f10x.h</h3><p>&amp;emsp;这个文件用来存放STM32寄存器映射的代码</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span>  PERIPH_BASE        ((unsigned int)0x40000000) <span class="comment">//外设初始地址</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span>  APB1PERIPH_BASE    PERIPH_BASE <span class="comment">//APB1的初始地址</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span>  APB2PERIPH_BASE    (PERIPH_BASE+0x10000) <span class="comment">//APB2的初始地址</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span>  AHBPERIPH_BASE     (PERIPH_BASE+0x20000) <span class="comment">//AHB的初始地址</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RCC_BASE            (AHBPERIPH_BASE + 0x1000)  <span class="comment">//RCC时钟的初始地址</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_BASE           (APB2PERIPH_BASE + 0x0c00) <span class="comment">//GPIOB管脚的初始地址</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//RCC的AHB2时钟的使能寄存器地址，强制转换成指针</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RCC_APB2ENR       *(unsigned int*)(RCC_BASE + 0x18) </span></span><br><span class="line"><span class="comment">//GPIOB寄存器地址，强制转换成指针</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_CRL      *(unsigned int*)(GPIOB_BASE + 0x00)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_CRH      *(unsigned int*)(GPIOB_BASE + 0x04)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_ODR      *(unsigned int*)(GPIOB_BASE + 0x0C)</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-2-2-main-c"><a href="#3-2-2-main-c" class="headerlink" title="3.2.2 main.c"></a>3.2.2 main.c</h3><p>①GPIO模式<br>&amp;emsp;首先我们把连接到LED的GPIO引脚PB0配置成输出模式，即配置GPIO的端口配置成地7寄存器CRL，见下图。CRL中包含0-7号引脚，每个引脚占用四个寄存器位。MODE为用来配置输出的速度，CNF位用来配置各种输入输出模式。<br><img src="https://img-blog.csdnimg.cn/535ae0f1579c47bd9f389fa0ec3b3f8e.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"></p>
+<p>&amp;emsp;在这里我们把PB0配置为通用推免输出，输出速度为10M。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//清空控制PB0的端口位</span></span><br><span class="line">GPIO_CRL &amp;= ~(<span class="number">0x00</span> &lt;&lt; (<span class="number">4</span>*<span class="number">0</span>));</span><br><span class="line"><span class="comment">//配置PB0为通用推免输出，速度为10M</span></span><br><span class="line">GPIO_CRL |=(<span class="number">1</span>&lt;&lt;<span class="number">4</span>*<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>&amp;emsp;在代码中，我们首先把控制PB0的端口位清零，然后向他赋值“0001”，从而将GPIOB0的引脚设置成输出模式，速度为10M。</p>
+<p>&amp;emsp;代码中使用了“&amp;&#x3D;~”和“|&#x3D;”这种操作方法，这是为了避免影响寄存器中的其他位，因为寄存器不能按位读写，不能直接赋值“0x00 0001”，这样就会影响他的高四位引脚。<br>②控制引脚输出电平<br>在输出模式时，对端口位设置&#x2F;清除寄存器BSRR寄存器、端口位清除寄存器BRR和ODR寄存器写入参数即可控制引脚的电平状态，其中操作BSRR和BRR最终影响的都是ODR寄存器，然后通过ODR寄存器的输出来控制GPIO，见下图。为了一步到位，我们在这里直接操作ODR寄存器来控制GPIO的电平，具体见代码。<br><img src="https://img-blog.csdnimg.cn/246699f0c6874ab0804fc10a6bf4d354.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//PB0输出低电平</span></span><br><span class="line">GPIOB_ODR &amp;= ~(<span class="number">1</span>&lt;&lt;<span class="number">0</span>);   <span class="comment">//1左移0位，并取反</span></span><br><span class="line"><span class="comment">//或</span></span><br><span class="line">GPIOB_ODR |= (<span class="number">0</span>&lt;&lt;<span class="number">0</span>); </span><br></pre></td></tr></table></figure>
+<p>③开启时钟外设<br>设置完GPIO的引脚，控制了电平输出，其实还差最后一步。由于STM32的外设很多，为了降低功耗，每个外设都对应一个时钟。在芯片刚上电的时候这些时钟都是关闭的，如果想要外设工作，必须把相应的时钟打开。<br>STM32的所有外设的时钟由一个专门的外设来管理，叫RCC（reset and clockcontrol）,。<br><img src="https://img-blog.csdnimg.cn/3ebe89f4d63a45dd85cb6a8a9e537b66.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBAYW50aG9ueS0zNg==,size_20,color_FFFFFF,t_70,g_se,x_16" alt="请添加图片描述"><br>所有的GPIO都挂载到APB2总线上，具体的时钟由APB2外设时钟使能寄存器（RCC_ APB2ENR）来控制。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//开启GPIOB端口时钟</span></span><br><span class="line">RCC_APB2ENR |= (<span class="number">1</span>&lt;&lt;<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+<p>④完成</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stm32f10x.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span> <span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//打开GPIOB端口的时钟</span></span><br><span class="line">	RCC_APB2ENR |= ((<span class="number">1</span>)&lt;&lt;<span class="number">3</span>);</span><br><span class="line">	<span class="comment">//清空控制PB0的端口位</span></span><br><span class="line">	GPIO_CRL &amp;= ~(<span class="number">0x00</span> &lt;&lt; (<span class="number">4</span>*<span class="number">0</span>));</span><br><span class="line">	<span class="comment">//配置PB0为通用推免输出，速度为10M</span></span><br><span class="line">	GPIOB_CRL |= ((<span class="number">1</span>)&lt;&lt;(<span class="number">4</span>*<span class="number">0</span>));</span><br><span class="line">	<span class="comment">//PB0输出低电平</span></span><br><span class="line">	GPIOB_ODR &amp;= ~(<span class="number">1</span>&lt;&lt;<span class="number">0</span>);   </span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span>  <span class="title">SystemInit</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="3-3-点亮三个灯"><a href="#3-3-点亮三个灯" class="headerlink" title="3.3 点亮三个灯"></a>3.3 点亮三个灯</h2><p>①startup_stm32f10x_hd.s文件配置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*本文件用于添加寄存器地址及结构体定义*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*片上外设基地址  */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PERIPH_BASE           ((unsigned int)0x40000000)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*APB2 总线基地址 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> APB2PERIPH_BASE       (PERIPH_BASE + 0x10000)</span></span><br><span class="line"><span class="comment">/* AHB总线基地址 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> AHBPERIPH_BASE        (PERIPH_BASE + 0x20000)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*GPIOB外设基地址*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_BASE            (APB2PERIPH_BASE + 0x0C00)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* GPIOB寄存器地址,强制转换成指针 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_CRL			*(unsigned int*)(GPIOB_BASE+0x00)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_CRH			*(unsigned int*)(GPIOB_BASE+0x04)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_IDR			*(unsigned int*)(GPIOB_BASE+0x08)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_ODR			*(unsigned int*)(GPIOB_BASE+0x0C)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_BSRR	  *(unsigned int*)(GPIOB_BASE+0x10)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_BRR			*(unsigned int*)(GPIOB_BASE+0x14)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GPIOB_LCKR		*(unsigned int*)(GPIOB_BASE+0x18)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*RCC外设基地址*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RCC_BASE      (AHBPERIPH_BASE + 0x1000)</span></span><br><span class="line"><span class="comment">/*RCC的AHB1时钟使能寄存器地址,强制转换成指针*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RCC_APB2ENR		 *(unsigned int*)(RCC_BASE+0x18)</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>②main.c文件</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">	*工程模板(寄存器版本)</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stm32f10x.h&quot;</span> </span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  *   主函数</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	</span><br><span class="line">	<span class="comment">// 开启GPIOB 端口时钟</span></span><br><span class="line">	RCC_APB2ENR |= (<span class="number">1</span>&lt;&lt;<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//清空控制PB0的端口位</span></span><br><span class="line">	GPIOB_CRL &amp;= ~( <span class="number">0x0F</span>&lt;&lt; (<span class="number">4</span>*<span class="number">0</span>));	</span><br><span class="line">	<span class="comment">// 配置PB0为通用推挽输出，速度为10M</span></span><br><span class="line">	GPIOB_CRL |= (<span class="number">1</span>&lt;&lt;<span class="number">4</span>*<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// PB0 输出 低电平</span></span><br><span class="line">	GPIOB_ODR &amp;= ~(<span class="number">1</span>&lt;&lt;<span class="number">0</span>);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//清空控制PB1的端口位</span></span><br><span class="line">	GPIOB_CRL &amp;= ~( <span class="number">0x0F</span>&lt;&lt; (<span class="number">4</span>*<span class="number">1</span>));	</span><br><span class="line">	<span class="comment">// 配置PB1为通用推挽输出，速度为10M</span></span><br><span class="line">	GPIOB_CRL |= (<span class="number">1</span>&lt;&lt;<span class="number">4</span>*<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// PB1 输出 低电平</span></span><br><span class="line">	GPIOB_ODR &amp;= ~(<span class="number">1</span>&lt;&lt;<span class="number">1</span>);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//清空控制PB5的端口位</span></span><br><span class="line">	GPIOB_CRL &amp;= ~( <span class="number">0x0F</span>&lt;&lt; (<span class="number">4</span>*<span class="number">5</span>));	</span><br><span class="line">	<span class="comment">// 配置PB5为通用推挽输出，速度为10M</span></span><br><span class="line">	GPIOB_CRL |= (<span class="number">1</span>&lt;&lt;<span class="number">4</span>*<span class="number">5</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// PB5 输出 低电平</span></span><br><span class="line">	GPIOB_ODR &amp;= ~(<span class="number">1</span>&lt;&lt;<span class="number">5</span>);</span><br><span class="line">	<span class="keyword">while</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数为空，目的是为了骗过编译器不报错</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SystemInit</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://example.com/2021/05/05/STM32%E5%AF%84%E5%AD%98%E5%99%A8%E7%82%B9%E4%BA%AELED%EF%BC%88%E4%BB%80%E4%B9%88%E6%98%AF%E5%AF%84%E5%AD%98%E5%99%A8%E3%80%81GPIO%E5%B7%A5%E4%BD%9C%E6%96%B9%E5%BC%8F%E3%80%81%E7%82%B9%E4%BA%AE%E5%8E%9F%E7%90%86%EF%BC%89/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/STM32/" rel="tag">STM32</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2021/06/10/ROS%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4%E7%9A%84%E6%96%87%E4%BB%B6%E7%BB%84%E6%88%90%E5%8F%8A%E5%85%B6%E5%8A%9F%E8%83%BD/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            ROS工作空间的文件组成及其功能
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/04/10/C++%E5%AE%9E%E7%8E%B0%E9%80%9A%E8%AE%AF%E5%BD%95%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">在ROS中使用C++中，ros_ros.h报错_找不到</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "",
+    app_key: "",
+    path: window.location.pathname,
+    avatar: "monsterid",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+    
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2022
+        <i class="ri-heart-fill heart_icon"></i> yzxie
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+        <script type="text/javascript" src='https://s9.cnzz.com/z_stat.php?id=1278069914&amp;web_id=1278069914'></script>
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/touxiang.png" alt="Anthony"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E6%97%85%E8%A1%8C/">旅行</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" target="_blank" rel="noopener" href="http://shenyu-vip.lofter.com">摄影</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2019/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
